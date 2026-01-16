@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Calculadora de Varianza para iOS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f7;
+            color: #1d1d1f;
+            padding: 20px;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: white;
+            border-radius: 18px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+            color: white;
+            padding: 24px 20px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+        
+        .content {
+            padding: 24px 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .data-section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #1d1d1f;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-title i {
+            color: #007AFF;
+        }
+        
+        .input-area {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        textarea {
+            width: 100%;
+            padding: 16px;
+            border: 1px solid #c7c7cc;
+            border-radius: 10px;
+            font-size: 1rem;
+            resize: none;
+            min-height: 120px;
+            transition: border-color 0.2s;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #007AFF;
+        }
+        
+        .input-hint {
+            font-size: 0.9rem;
+            color: #8E8E93;
+            padding: 0 4px;
+        }
+        
+        .btn {
+            background-color: #007AFF;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 16px 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn:hover, .btn:active {
+            background-color: #0056CC;
+        }
+        
+        .btn-secondary {
+            background-color: #8E8E93;
+        }
+        
+        .btn-secondary:hover, .btn-secondary:active {
+            background-color: #6C6C70;
+        }
+        
+        .btn-danger {
+            background-color: #FF3B30;
+        }
+        
+        .btn-danger:hover, .btn-danger:active {
+            background-color: #D70015;
+        }
+        
+        .data-values {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            min-height: 60px;
+            padding: 12px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+        }
+        
+        .data-value {
+            background-color: #e8f1ff;
+            color: #007AFF;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .data-value span {
+            font-weight: 400;
+        }
+        
+        .data-value i {
+            cursor: pointer;
+        }
+        
+        .results-section {
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .results-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #1d1d1f;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .results-title i {
+            color: #34C759;
+        }
+        
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid #e5e5ea;
+        }
+        
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        
+        .result-label {
+            font-weight: 500;
+            color: #636366;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .result-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #1d1d1f;
+        }
+        
+        .info-section {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #fff8e1;
+            border-radius: 10px;
+            border-left: 4px solid #FFCC00;
+        }
+        
+        .info-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #1d1d1f;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .info-content {
+            font-size: 0.95rem;
+            color: #636366;
+        }
+        
+        .info-content p {
+            margin-bottom: 10px;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #8E8E93;
+            font-size: 0.9rem;
+            border-top: 1px solid #e5e5ea;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            
+            header {
+                padding: 20px 16px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .content {
+                padding: 20px 16px;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+            
+            .result-value {
+                font-size: 1.2rem;
+            }
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .buttons-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .buttons-row .btn {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Calculadora de Varianza</h1>
+            <p class="subtitle">Calcula la varianza muestral y poblacional</p>
+        </header>
+        
+        <div class="content">
+            <div class="data-section">
+                <h2 class="section-title">
+                    <i class="fas fa-list-ol"></i> Ingresa tus datos
+                </h2>
+                
+                <div class="input-area">
+                    <div class="input-group">
+                        <textarea id="data-input" placeholder="Ingresa valores separados por comas. Ejemplo: 10.5, 12, 13.2, 15, 11.8"></textarea>
+                        <div class="input-hint">
+                            <i class="fas fa-info-circle"></i> Separa los números con comas. Los decimales pueden usar punto o coma.
+                        </div>
+                    </div>
+                    
+                    <div class="buttons-row">
+                        <button class="btn" id="process-btn">
+                            <i class="fas fa-calculator"></i> Calcular
+                        </button>
+                        <button class="btn btn-secondary" id="example-btn">
+                            <i class="fas fa-magic"></i> Ejemplo
+                        </button>
+                    </div>
+                    
+                    <div class="buttons-row">
+                        <button class="btn btn-danger" id="clear-btn">
+                            <i class="fas fa-trash"></i> Limpiar
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="data-values" id="data-values">
+                    <div id="empty-message">No hay datos ingresados. Ingresa valores separados por comas y presiona Calcular.</div>
+                </div>
+            </div>
+            
+            <div class="results-section" id="results-section">
+                <h2 class="results-title">
+                    <i class="fas fa-chart-line"></i> Resultados
+                </h2>
+                
+                <div class="result-item">
+                    <div class="result-label">
+                        <i class="fas fa-calculator"></i> Media (promedio)
+                    </div>
+                    <div class="result-value" id="mean-result">-</div>
+                </div>
+                
+                <div class="result-item">
+                    <div class="result-label">
+                        <i class="fas fa-chart-bar"></i> Varianza Poblacional (σ²)
+                    </div>
+                    <div class="result-value" id="population-variance-result">-</div>
+                </div>
+                
+                <div class="result-item">
+                    <div class="result-label">
+                        <i class="fas fa-chart-bar"></i> Varianza Muestral (s²)
+                    </div>
+                    <div class="result-value" id="sample-variance-result">-</div>
+                </div>
+                
+                <div class="result-item">
+                    <div class="result-label">
+                        <i class="fas fa-project-diagram"></i> Desviación Estándar Poblacional (σ)
+                    </div>
+                    <div class="result-value" id="population-stddev-result">-</div>
+                </div>
+                
+                <div class="result-item">
+                    <div class="result-label">
+                        <i class="fas fa-project-diagram"></i> Desviación Estándar Muestral (s)
+                    </div>
+                    <div class="result-value" id="sample-stddev-result">-</div>
+                </div>
+                
+                <div class="result-item">
+                    <div class="result-label">
+                        <i class="fas fa-hashtag"></i> Cantidad de datos (n)
+                    </div>
+                    <div class="result-value" id="count-result">-</div>
+                </div>
+            </div>
+            
+            <div class="info-section">
+                <h3 class="info-title">
+                    <i class="fas fa-info-circle"></i> Información
+                </h3>
+                <div class="info-content">
+                    <p><strong>Varianza Poblacional (σ²)</strong>: Se calcula dividiendo la suma de las diferencias al cuadrado entre cada valor y la media, por el total de elementos (N). Usa esta fórmula cuando tengas todos los datos de la población.</p>
+                    <p><strong>Varianza Muestral (s²)</strong>: Se calcula de manera similar, pero dividiendo por N-1 en lugar de N. Usa esta fórmula cuando tengas solo una muestra de la población.</p>
+                    <p><strong>Desviación estándar</strong>: Es la raíz cuadrada de la varianza, y mide la dispersión de los datos en las mismas unidades que los datos originales.</p>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Calculadora compatible con iOS • Diseñada para dispositivos móviles</p>
+        </footer>
+    </div>
+
+    <script>
+        // Variables globales
+        let data = [];
+        
+        // Elementos del DOM
+        const dataInput = document.getElementById('data-input');
+        const processBtn = document.getElementById('process-btn');
+        const exampleBtn = document.getElementById('example-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const dataValuesContainer = document.getElementById('data-values');
+        const emptyMessage = document.getElementById('empty-message');
+        const resultsSection = document.getElementById('results-section');
+        
+        // Elementos de resultados
+        const meanResult = document.getElementById('mean-result');
+        const populationVarianceResult = document.getElementById('population-variance-result');
+        const sampleVarianceResult = document.getElementById('sample-variance-result');
+        const populationStdDevResult = document.getElementById('population-stddev-result');
+        const sampleStdDevResult = document.getElementById('sample-stddev-result');
+        const countResult = document.getElementById('count-result');
+        
+        // Event Listeners
+        processBtn.addEventListener('click', processData);
+        exampleBtn.addEventListener('click', loadExampleData);
+        clearBtn.addEventListener('click', clearData);
+        
+        // Permitir usar Enter+Shift para calcular
+        dataInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                processData();
+            }
+        });
+        
+        // Función para procesar los datos ingresados
+        function processData() {
+            const inputText = dataInput.value.trim();
+            
+            if (!inputText) {
+                alert('Por favor, ingresa algunos valores numéricos separados por comas.');
+                return;
+            }
+            
+            // Procesar los datos: separar por comas y limpiar
+            let values = inputText.split(',');
+            
+            // Limpiar y convertir a números
+            data = [];
+            let validValues = 0;
+            let invalidValues = [];
+            
+            values.forEach((value, index) => {
+                // Limpiar el valor: eliminar espacios y reemplazar coma decimal por punto
+                let cleanValue = value.trim().replace(/,\s*$/, '').replace(',', '.');
+                
+                // Intentar convertir a número
+                let number = parseFloat(cleanValue);
+                
+                if (!isNaN(number) && isFinite(number)) {
+                    data.push(number);
+                    validValues++;
+                } else if (cleanValue !== '') {
+                    invalidValues.push(value.trim());
+                }
+            });
+            
+            // Mostrar advertencia si hay valores inválidos
+            if (invalidValues.length > 0) {
+                alert(`Se encontraron ${invalidValues.length} valores inválidos y serán ignorados:\n${invalidValues.join(', ')}`);
+            }
+            
+            // Verificar que haya datos válidos
+            if (data.length === 0) {
+                alert('No se encontraron valores numéricos válidos. Por favor, ingresa números separados por comas.');
+                return;
+            }
+            
+            // Actualizar la visualización y calcular
+            updateDataDisplay();
+            calculateResults();
+        }
+        
+        // Función para eliminar un dato
+        function removeData(index) {
+            data.splice(index, 1);
+            
+            // Actualizar el área de texto con los datos restantes
+            dataInput.value = data.join(', ');
+            
+            updateDataDisplay();
+            calculateResults();
+        }
+        
+        // Función para actualizar la visualización de datos
+        function updateDataDisplay() {
+            // Limpiar contenedor
+            dataValuesContainer.innerHTML = '';
+            
+            // Mostrar mensaje si no hay datos
+            if (data.length === 0) {
+                dataValuesContainer.appendChild(emptyMessage);
+                emptyMessage.classList.remove('hidden');
+                resultsSection.classList.add('hidden');
+                return;
+            }
+            
+            // Ocultar mensaje vacío y mostrar resultados
+            emptyMessage.classList.add('hidden');
+            resultsSection.classList.remove('hidden');
+            
+            // Mostrar cada valor de datos
+            data.forEach((value, index) => {
+                const valueElement = document.createElement('div');
+                valueElement.className = 'data-value';
+                valueElement.innerHTML = `
+                    <span>${value}</span>
+                    <i class="fas fa-times" data-index="${index}" title="Eliminar este valor"></i>
+                `;
+                
+                // Agregar evento para eliminar
+                const removeIcon = valueElement.querySelector('i');
+                removeIcon.addEventListener('click', function() {
+                    removeData(index);
+                });
+                
+                dataValuesContainer.appendChild(valueElement);
+            });
+        }
+        
+        // Función para cargar datos de ejemplo
+        function loadExampleData() {
+            // Datos de ejemplo: alturas de personas en cm
+            const exampleData = [165, 170, 172, 168, 175, 180, 169, 171, 174, 167];
+            dataInput.value = exampleData.join(', ');
+            processData();
+        }
+        
+        // Función para limpiar todos los datos
+        function clearData() {
+            data = [];
+            dataInput.value = '';
+            updateDataDisplay();
+        }
+        
+        // Función para calcular todos los resultados
+        function calculateResults() {
+            if (data.length === 0) return;
+            
+            // Calcular media
+            const mean = calculateMean(data);
+            
+            // Calcular varianza poblacional y muestral
+            const populationVariance = calculateVariance(data, true);
+            const sampleVariance = calculateVariance(data, false);
+            
+            // Calcular desviación estándar
+            const populationStdDev = Math.sqrt(populationVariance);
+            const sampleStdDev = Math.sqrt(sampleVariance);
+            
+            // Actualizar la interfaz
+            meanResult.textContent = mean.toFixed(4);
+            populationVarianceResult.textContent = populationVariance.toFixed(4);
+            sampleVarianceResult.textContent = sampleVariance.toFixed(4);
+            populationStdDevResult.textContent = populationStdDev.toFixed(4);
+            sampleStdDevResult.textContent = sampleStdDev.toFixed(4);
+            countResult.textContent = data.length;
+        }
+        
+        // Función para calcular la media
+        function calculateMean(dataArray) {
+            const sum = dataArray.reduce((acc, val) => acc + val, 0);
+            return sum / dataArray.length;
+        }
+        
+        // Función para calcular la varianza
+        function calculateVariance(dataArray, isPopulation) {
+            const mean = calculateMean(dataArray);
+            const squaredDifferences = dataArray.map(val => Math.pow(val - mean, 2));
+            const sumSquaredDiff = squaredDifferences.reduce((acc, val) => acc + val, 0);
+            
+            // Si es población, dividir por N, si es muestra, dividir por N-1
+            const divisor = isPopulation ? dataArray.length : dataArray.length - 1;
+            
+            return divisor > 0 ? sumSquaredDiff / divisor : 0;
+        }
+        
+        // Inicializar la aplicación
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mostrar la sección de resultados como oculta inicialmente
+            resultsSection.classList.add('hidden');
+            
+            // Enfocar el área de texto al cargar
+            dataInput.focus();
+        });
+    </script>
+</body>
+</html>

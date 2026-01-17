@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Calculadora de Varianza para iOS</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
             margin: 0;
@@ -18,7 +19,7 @@
             color: #1d1d1f;
             padding: 20px;
             line-height: 1.6;
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             min-height: 100vh;
             display: flex;
@@ -226,6 +227,57 @@
             color: #1d1d1f;
         }
         
+        .graph-section {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            border: 1px solid #e5e5ea;
+        }
+        
+        .graph-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #1d1d1f;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .graph-title i {
+            color: #FF9500;
+        }
+        
+        .graph-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        
+        .graph-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
         .info-section {
             margin-top: 30px;
             padding: 20px;
@@ -285,6 +337,10 @@
             
             .result-value {
                 font-size: 1.2rem;
+            }
+            
+            .graph-container {
+                height: 250px;
             }
         }
         
@@ -393,6 +449,18 @@
                 </div>
             </div>
             
+            <div class="graph-section hidden" id="graph-section">
+                <h2 class="graph-title">
+                    <i class="fas fa-chart-scatter"></i> Visualización de Datos
+                </h2>
+                <div class="graph-container">
+                    <canvas id="dataChart"></canvas>
+                </div>
+                <div class="graph-legend" id="graph-legend">
+                    <!-- La leyenda se generará dinámicamente -->
+                </div>
+            </div>
+            
             <div class="info-section">
                 <h3 class="info-title">
                     <i class="fas fa-info-circle"></i> Información
@@ -401,6 +469,7 @@
                     <p><strong>Varianza Poblacional (σ²)</strong>: Se calcula dividiendo la suma de las diferencias al cuadrado entre cada valor y la media, por el total de elementos (N). Usa esta fórmula cuando tengas todos los datos de la población.</p>
                     <p><strong>Varianza Muestral (s²)</strong>: Se calcula de manera similar, pero dividiendo por N-1 en lugar de N. Usa esta fórmula cuando tengas solo una muestra de la población.</p>
                     <p><strong>Desviación estándar</strong>: Es la raíz cuadrada de la varianza, y mide la dispersión de los datos en las mismas unidades que los datos originales.</p>
+                    <p><strong>Gráfico interactivo</strong>: Muestra cada valor con color según su distancia a la media. Verde = cerca de la media, Naranja = ±1 desviación estándar, Rojo = más de ±2 desviaciones estándares.</p>
                 </div>
             </div>
         </div>
@@ -413,6 +482,7 @@
     <script>
         // Variables globales
         let data = [];
+        let chart = null;
         
         // Elementos del DOM
         const dataInput = document.getElementById('data-input');
@@ -422,6 +492,8 @@
         const dataValuesContainer = document.getElementById('data-values');
         const emptyMessage = document.getElementById('empty-message');
         const resultsSection = document.getElementById('results-section');
+        const graphSection = document.getElementById('graph-section');
+        const graphLegend = document.getElementById('graph-legend');
         
         // Elementos de resultados
         const meanResult = document.getElementById('mean-result');
@@ -436,7 +508,7 @@
         exampleBtn.addEventListener('click', loadExampleData);
         clearBtn.addEventListener('click', clearData);
         
-        // Permitir usar Enter+Shift para calcular
+        // Permitir usar Enter+Ctrl para calcular
         dataInput.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && e.ctrlKey) {
                 processData();
@@ -489,6 +561,7 @@
             // Actualizar la visualización y calcular
             updateDataDisplay();
             calculateResults();
+            updateChart();
         }
         
         // Función para eliminar un dato
@@ -500,6 +573,7 @@
             
             updateDataDisplay();
             calculateResults();
+            updateChart();
         }
         
         // Función para actualizar la visualización de datos
@@ -512,12 +586,14 @@
                 dataValuesContainer.appendChild(emptyMessage);
                 emptyMessage.classList.remove('hidden');
                 resultsSection.classList.add('hidden');
+                graphSection.classList.add('hidden');
                 return;
             }
             
             // Ocultar mensaje vacío y mostrar resultados
             emptyMessage.classList.add('hidden');
             resultsSection.classList.remove('hidden');
+            graphSection.classList.remove('hidden');
             
             // Mostrar cada valor de datos
             data.forEach((value, index) => {
@@ -551,6 +627,12 @@
             data = [];
             dataInput.value = '';
             updateDataDisplay();
+            
+            // Destruir gráfico si existe
+            if (chart) {
+                chart.destroy();
+                chart = null;
+            }
         }
         
         // Función para calcular todos los resultados
@@ -595,10 +677,202 @@
             return divisor > 0 ? sumSquaredDiff / divisor : 0;
         }
         
+        // Función para obtener el color según la distancia a la media
+        function getColorForValue(value, mean, stdDev) {
+            const distance = Math.abs(value - mean);
+            
+            // Si está dentro de 1 desviación estándar
+            if (distance <= stdDev) {
+                return '#34C759'; // Verde
+            }
+            // Si está entre 1 y 2 desviaciones estándar
+            else if (distance <= 2 * stdDev) {
+                return '#FF9500'; // Naranja
+            }
+            // Si está más allá de 2 desviaciones estándar
+            else {
+                return '#FF3B30'; // Rojo
+            }
+        }
+        
+        // Función para actualizar el gráfico
+        function updateChart() {
+            if (data.length === 0) return;
+            
+            const mean = calculateMean(data);
+            const stdDev = Math.sqrt(calculateVariance(data, true));
+            
+            // Preparar datos para el gráfico
+            const labels = data.map((_, i) => `Dato ${i+1}`);
+            const values = data;
+            
+            // Obtener colores para cada valor
+            const backgroundColors = data.map(val => getColorForValue(val, mean, stdDev));
+            
+            // Preparar líneas de referencia
+            const referenceLines = [
+                { value: mean, label: 'Media', color: '#007AFF', borderDash: [5, 5] },
+                { value: mean + stdDev, label: '+1σ', color: '#FF9500', borderDash: [3, 3] },
+                { value: mean - stdDev, label: '-1σ', color: '#FF9500', borderDash: [3, 3] },
+                { value: mean + 2 * stdDev, label: '+2σ', color: '#FF3B30', borderDash: [2, 2] },
+                { value: mean - 2 * stdDev, label: '-2σ', color: '#FF3B30', borderDash: [2, 2] }
+            ];
+            
+            // Configuración del gráfico
+            const ctx = document.getElementById('dataChart').getContext('2d');
+            
+            // Destruir gráfico existente si hay uno
+            if (chart) {
+                chart.destroy();
+            }
+            
+            // Crear nuevo gráfico
+            chart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        // Líneas de referencia
+                        ...referenceLines.map(line => ({
+                            label: line.label,
+                            data: data.map(() => line.value),
+                            type: 'line',
+                            borderColor: line.color,
+                            borderWidth: 1,
+                            borderDash: line.borderDash,
+                            fill: false,
+                            pointRadius: 0,
+                            pointHoverRadius: 0,
+                            tension: 0
+                        })),
+                        // Datos principales
+                        {
+                            label: 'Valores',
+                            data: values.map((value, index) => ({x: index, y: value})),
+                            backgroundColor: backgroundColors,
+                            borderColor: '#1d1d1f',
+                            borderWidth: 1,
+                            pointRadius: 8,
+                            pointHoverRadius: 12
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.parsed.y;
+                                    const index = context.dataIndex;
+                                    const distance = Math.abs(value - mean);
+                                    const stdDevs = (distance / stdDev).toFixed(2);
+                                    
+                                    let zone = '';
+                                    if (distance <= stdDev) {
+                                        zone = 'Dentro de 1σ';
+                                    } else if (distance <= 2 * stdDev) {
+                                        zone = 'Entre 1σ y 2σ';
+                                    } else {
+                                        zone = 'Más allá de 2σ';
+                                    }
+                                    
+                                    return [
+                                        `Valor: ${value}`,
+                                        `Posición: ${index + 1}`,
+                                        `Distancia a media: ${distance.toFixed(2)}`,
+                                        `Desviaciones estándar: ${stdDevs}σ`,
+                                        `Zona: ${zone}`
+                                    ];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Posición del dato',
+                                color: '#636366',
+                                font: {
+                                    size: 14
+                                }
+                            },
+                            ticks: {
+                                color: '#8E8E93'
+                            },
+                            grid: {
+                                color: '#e5e5ea'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Valor',
+                                color: '#636366',
+                                font: {
+                                    size: 14
+                                }
+                            },
+                            ticks: {
+                                color: '#8E8E93'
+                            },
+                            grid: {
+                                color: '#e5e5ea'
+                            },
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
+            
+            // Actualizar leyenda
+            updateLegend(mean, stdDev);
+        }
+        
+        // Función para actualizar la leyenda del gráfico
+        function updateLegend(mean, stdDev) {
+            const legendItems = [
+                { color: '#34C759', label: 'Dentro de 1σ (cerca de la media)' },
+                { color: '#FF9500', label: 'Entre 1σ y 2σ (moderadamente alejado)' },
+                { color: '#FF3B30', label: 'Más allá de 2σ (muy alejado)' },
+                { color: '#007AFF', label: 'Media', dash: true },
+                { color: '#FF9500', label: '±1σ', dash: true },
+                { color: '#FF3B30', label: '±2σ', dash: true }
+            ];
+            
+            graphLegend.innerHTML = '';
+            
+            legendItems.forEach(item => {
+                const legendItem = document.createElement('div');
+                legendItem.className = 'legend-item';
+                
+                const colorBox = document.createElement('div');
+                colorBox.className = 'legend-color';
+                colorBox.style.backgroundColor = item.color;
+                
+                if (item.dash) {
+                    colorBox.style.backgroundImage = 'linear-gradient(45deg, transparent 45%, #8E8E93 45%, #8E8E93 55%, transparent 55%)';
+                }
+                
+                const label = document.createElement('span');
+                label.textContent = item.label;
+                
+                legendItem.appendChild(colorBox);
+                legendItem.appendChild(label);
+                graphLegend.appendChild(legendItem);
+            });
+        }
+        
         // Inicializar la aplicación
         document.addEventListener('DOMContentLoaded', function() {
             // Mostrar la sección de resultados como oculta inicialmente
             resultsSection.classList.add('hidden');
+            graphSection.classList.add('hidden');
             
             // Enfocar el área de texto al cargar
             dataInput.focus();

@@ -227,6 +227,83 @@
             color: #1d1d1f;
         }
         
+        .process-section {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f0f7ff;
+            border-radius: 10px;
+            border-left: 4px solid #007AFF;
+        }
+        
+        .process-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #1d1d1f;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .process-title i {
+            color: #007AFF;
+        }
+        
+        .process-step {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            border: 1px solid #e5e5ea;
+        }
+        
+        .step-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #1d1d1f;
+            font-size: 1.1rem;
+        }
+        
+        .step-content {
+            font-family: 'Courier New', monospace;
+            background-color: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 8px 0;
+            overflow-x: auto;
+        }
+        
+        .variable-color {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin: 0 2px;
+        }
+        
+        .color-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+            padding: 12px;
+            background-color: white;
+            border-radius: 8px;
+            border: 1px solid #e5e5ea;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9rem;
+        }
+        
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+        
         .graph-section {
             margin-top: 30px;
             padding: 20px;
@@ -264,18 +341,6 @@
             background-color: #f9f9f9;
             border-radius: 8px;
             font-size: 0.9rem;
-        }
-        
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        .legend-color {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
         }
         
         .info-section {
@@ -342,6 +407,10 @@
             .graph-container {
                 height: 250px;
             }
+            
+            .color-legend {
+                flex-direction: column;
+            }
         }
         
         .hidden {
@@ -357,6 +426,19 @@
         .buttons-row .btn {
             flex: 1;
         }
+        
+        /* Colores para variables */
+        .color-n { background-color: #FF6B6B; color: white; }
+        .color-sum { background-color: #4ECDC4; color: white; }
+        .color-mean { background-color: #45B7D1; color: white; }
+        .color-xi { background-color: #96CEB4; color: #1d1d1f; }
+        .color-diff { background-color: #FFEAA7; color: #1d1d1f; }
+        .color-diff2 { background-color: #FDCB6E; color: #1d1d1f; }
+        .color-sum-sq { background-color: #DDA0DD; color: white; }
+        .color-var-pop { background-color: #98D8C8; color: #1d1d1f; }
+        .color-var-samp { background-color: #F7DC6F; color: #1d1d1f; }
+        .color-std-pop { background-color: #BB8FCE; color: white; }
+        .color-std-samp { background-color: #85C1E9; color: white; }
     </style>
 </head>
 <body>
@@ -401,7 +483,7 @@
                 </div>
             </div>
             
-            <div class="results-section" id="results-section">
+            <div class="results-section hidden" id="results-section">
                 <h2 class="results-title">
                     <i class="fas fa-chart-line"></i> Resultados
                 </h2>
@@ -449,9 +531,23 @@
                 </div>
             </div>
             
+            <div class="process-section hidden" id="process-section">
+                <h2 class="process-title">
+                    <i class="fas fa-cogs"></i> Proceso Detallado
+                </h2>
+                
+                <div id="process-details">
+                    <!-- El contenido del proceso se generará dinámicamente -->
+                </div>
+                
+                <div class="color-legend" id="color-legend">
+                    <!-- La leyenda de colores se generará dinámicamente -->
+                </div>
+            </div>
+            
             <div class="graph-section hidden" id="graph-section">
                 <h2 class="graph-title">
-                    <i class="fas fa-chart-scatter"></i> Visualización de Datos
+                    <i class="fas fa-chart-scatter"></i> Visualización de Datos Ordenados
                 </h2>
                 <div class="graph-container">
                     <canvas id="dataChart"></canvas>
@@ -469,7 +565,8 @@
                     <p><strong>Varianza Poblacional (σ²)</strong>: Se calcula dividiendo la suma de las diferencias al cuadrado entre cada valor y la media, por el total de elementos (N). Usa esta fórmula cuando tengas todos los datos de la población.</p>
                     <p><strong>Varianza Muestral (s²)</strong>: Se calcula de manera similar, pero dividiendo por N-1 en lugar de N. Usa esta fórmula cuando tengas solo una muestra de la población.</p>
                     <p><strong>Desviación estándar</strong>: Es la raíz cuadrada de la varianza, y mide la dispersión de los datos en las mismas unidades que los datos originales.</p>
-                    <p><strong>Gráfico interactivo</strong>: Muestra cada valor con color según su distancia a la media. Verde = cerca de la media, Naranja = ±1 desviación estándar, Rojo = más de ±2 desviaciones estándares.</p>
+                    <p><strong>Proceso detallado</strong>: Muestra cada paso del cálculo con colores para cada variable, siguiendo el orden PEMDAS de operaciones.</p>
+                    <p><strong>Gráfico interactivo</strong>: Muestra los datos ordenados de menor a mayor con color según su distancia a la media.</p>
                 </div>
             </div>
         </div>
@@ -492,7 +589,10 @@
         const dataValuesContainer = document.getElementById('data-values');
         const emptyMessage = document.getElementById('empty-message');
         const resultsSection = document.getElementById('results-section');
+        const processSection = document.getElementById('process-section');
         const graphSection = document.getElementById('graph-section');
+        const processDetails = document.getElementById('process-details');
+        const colorLegend = document.getElementById('color-legend');
         const graphLegend = document.getElementById('graph-legend');
         
         // Elementos de resultados
@@ -502,6 +602,21 @@
         const populationStdDevResult = document.getElementById('population-stddev-result');
         const sampleStdDevResult = document.getElementById('sample-stddev-result');
         const countResult = document.getElementById('count-result');
+        
+        // Definición de colores para variables
+        const variableColors = {
+            'n': {class: 'color-n', description: 'Cantidad de datos'},
+            'sum': {class: 'color-sum', description: 'Suma de los valores'},
+            'mean': {class: 'color-mean', description: 'Media (promedio)'},
+            'xi': {class: 'color-xi', description: 'Valor individual'},
+            'diff': {class: 'color-diff', description: 'Diferencia con la media'},
+            'diff²': {class: 'color-diff2', description: 'Diferencia al cuadrado'},
+            'sumSq': {class: 'color-sum-sq', description: 'Suma de diferencias cuadradas'},
+            'varPop': {class: 'color-var-pop', description: 'Varianza poblacional'},
+            'varSamp': {class: 'color-var-samp', description: 'Varianza muestral'},
+            'stdPop': {class: 'color-std-pop', description: 'Desviación estándar poblacional'},
+            'stdSamp': {class: 'color-std-samp', description: 'Desviación estándar muestral'}
+        };
         
         // Event Listeners
         processBtn.addEventListener('click', processData);
@@ -561,6 +676,8 @@
             // Actualizar la visualización y calcular
             updateDataDisplay();
             calculateResults();
+            updateProcessDetails();
+            updateColorLegend();
             updateChart();
         }
         
@@ -573,6 +690,7 @@
             
             updateDataDisplay();
             calculateResults();
+            updateProcessDetails();
             updateChart();
         }
         
@@ -586,6 +704,7 @@
                 dataValuesContainer.appendChild(emptyMessage);
                 emptyMessage.classList.remove('hidden');
                 resultsSection.classList.add('hidden');
+                processSection.classList.add('hidden');
                 graphSection.classList.add('hidden');
                 return;
             }
@@ -593,6 +712,7 @@
             // Ocultar mensaje vacío y mostrar resultados
             emptyMessage.classList.add('hidden');
             resultsSection.classList.remove('hidden');
+            processSection.classList.remove('hidden');
             graphSection.classList.remove('hidden');
             
             // Mostrar cada valor de datos
@@ -695,19 +815,190 @@
             }
         }
         
-        // Función para actualizar el gráfico
+        // Función para mostrar el proceso detallado
+        function updateProcessDetails() {
+            if (data.length === 0) return;
+            
+            // Calcular valores necesarios
+            const n = data.length;
+            const sum = data.reduce((acc, val) => acc + val, 0);
+            const mean = sum / n;
+            const squaredDiffs = data.map(val => Math.pow(val - mean, 2));
+            const sumSquaredDiff = squaredDiffs.reduce((acc, val) => acc + val, 0);
+            const populationVariance = sumSquaredDiff / n;
+            const sampleVariance = n > 1 ? sumSquaredDiff / (n - 1) : 0;
+            const populationStdDev = Math.sqrt(populationVariance);
+            const sampleStdDev = Math.sqrt(sampleVariance);
+            
+            // Limpiar contenido anterior
+            processDetails.innerHTML = '';
+            
+            // Paso 1: Cantidad de datos (n)
+            const step1 = document.createElement('div');
+            step1.className = 'process-step';
+            step1.innerHTML = `
+                <div class="step-title">Paso 1: Determinar la cantidad de datos (n)</div>
+                <div class="step-content">
+                    n = ${data.length} datos
+                </div>
+            `;
+            processDetails.appendChild(step1);
+            
+            // Paso 2: Suma de todos los valores
+            const step2 = document.createElement('div');
+            step2.className = 'process-step';
+            const sumExpression = data.map(val => `<span class="variable-color ${variableColors.xi.class}">${val}</span>`).join(' + ');
+            step2.innerHTML = `
+                <div class="step-title">Paso 2: Calcular la suma de todos los valores</div>
+                <div class="step-content">
+                    Σx<sub>i</sub> = ${sumExpression} = <span class="variable-color ${variableColors.sum.class}">${sum}</span>
+                </div>
+            `;
+            processDetails.appendChild(step2);
+            
+            // Paso 3: Calcular la media
+            const step3 = document.createElement('div');
+            step3.className = 'process-step';
+            step3.innerHTML = `
+                <div class="step-title">Paso 3: Calcular la media (promedio)</div>
+                <div class="step-content">
+                    <span class="variable-color ${variableColors.mean.class}">μ</span> = Σx<sub>i</sub> / <span class="variable-color ${variableColors.n.class}">n</span> = 
+                    <span class="variable-color ${variableColors.sum.class}">${sum}</span> / <span class="variable-color ${variableColors.n.class}">${n}</span> = 
+                    <span class="variable-color ${variableColors.mean.class}">${mean.toFixed(4)}</span>
+                </div>
+            `;
+            processDetails.appendChild(step3);
+            
+            // Paso 4: Calcular diferencias con la media
+            const step4 = document.createElement('div');
+            step4.className = 'process-step';
+            const diffExpressions = data.map((val, i) => {
+                const diff = (val - mean).toFixed(4);
+                return `(${val} - ${mean.toFixed(4)}) = <span class="variable-color ${variableColors.diff.class}">${diff}</span>`;
+            }).join('<br>');
+            step4.innerHTML = `
+                <div class="step-title">Paso 4: Calcular las diferencias de cada valor con la media</div>
+                <div class="step-content">
+                    ${diffExpressions}
+                </div>
+            `;
+            processDetails.appendChild(step4);
+            
+            // Paso 5: Elevar al cuadrado las diferencias
+            const step5 = document.createElement('div');
+            step5.className = 'process-step';
+            const diff2Expressions = squaredDiffs.map((val, i) => {
+                const diff = (data[i] - mean).toFixed(4);
+                return `(${diff})² = <span class="variable-color ${variableColors['diff²'].class}">${val.toFixed(4)}</span>`;
+            }).join('<br>');
+            step5.innerHTML = `
+                <div class="step-title">Paso 5: Elevar al cuadrado cada diferencia</div>
+                <div class="step-content">
+                    ${diff2Expressions}
+                </div>
+            `;
+            processDetails.appendChild(step5);
+            
+            // Paso 6: Sumar las diferencias al cuadrado
+            const step6 = document.createElement('div');
+            step6.className = 'process-step';
+            const sumSqExpression = squaredDiffs.map(val => val.toFixed(4)).join(' + ');
+            step6.innerHTML = `
+                <div class="step-title">Paso 6: Sumar todas las diferencias al cuadrado</div>
+                <div class="step-content">
+                    Σ(x<sub>i</sub> - μ)² = ${sumSqExpression} = <span class="variable-color ${variableColors.sumSq.class}">${sumSquaredDiff.toFixed(4)}</span>
+                </div>
+            `;
+            processDetails.appendChild(step6);
+            
+            // Paso 7: Calcular varianza poblacional
+            const step7 = document.createElement('div');
+            step7.className = 'process-step';
+            step7.innerHTML = `
+                <div class="step-title">Paso 7: Calcular varianza poblacional (σ²)</div>
+                <div class="step-content">
+                    <span class="variable-color ${variableColors.varPop.class}">σ²</span> = Σ(x<sub>i</sub> - μ)² / <span class="variable-color ${variableColors.n.class}">n</span> = 
+                    <span class="variable-color ${variableColors.sumSq.class}">${sumSquaredDiff.toFixed(4)}</span> / <span class="variable-color ${variableColors.n.class}">${n}</span> = 
+                    <span class="variable-color ${variableColors.varPop.class}">${populationVariance.toFixed(4)}</span>
+                </div>
+            `;
+            processDetails.appendChild(step7);
+            
+            // Paso 8: Calcular varianza muestral
+            const step8 = document.createElement('div');
+            step8.className = 'process-step';
+            step8.innerHTML = `
+                <div class="step-title">Paso 8: Calcular varianza muestral (s²)</div>
+                <div class="step-content">
+                    <span class="variable-color ${variableColors.varSamp.class}">s²</span> = Σ(x<sub>i</sub> - μ)² / (<span class="variable-color ${variableColors.n.class}">n</span> - 1) = 
+                    <span class="variable-color ${variableColors.sumSq.class}">${sumSquaredDiff.toFixed(4)}</span> / <span class="variable-color ${variableColors.n.class}">${n}</span> - 1 = 
+                    <span class="variable-color ${variableColors.varSamp.class}">${sampleVariance.toFixed(4)}</span>
+                </div>
+            `;
+            processDetails.appendChild(step8);
+            
+            // Paso 9: Calcular desviación estándar poblacional
+            const step9 = document.createElement('div');
+            step9.className = 'process-step';
+            step9.innerHTML = `
+                <div class="step-title">Paso 9: Calcular desviación estándar poblacional (σ)</div>
+                <div class="step-content">
+                    <span class="variable-color ${variableColors.stdPop.class}">σ</span> = √(<span class="variable-color ${variableColors.varPop.class}">σ²</span>) = 
+                    √(<span class="variable-color ${variableColors.varPop.class}">${populationVariance.toFixed(4)}</span>) = 
+                    <span class="variable-color ${variableColors.stdPop.class}">${populationStdDev.toFixed(4)}</span>
+                </div>
+            `;
+            processDetails.appendChild(step9);
+            
+            // Paso 10: Calcular desviación estándar muestral
+            const step10 = document.createElement('div');
+            step10.className = 'process-step';
+            step10.innerHTML = `
+                <div class="step-title">Paso 10: Calcular desviación estándar muestral (s)</div>
+                <div class="step-content">
+                    <span class="variable-color ${variableColors.stdSamp.class}">s</span> = √(<span class="variable-color ${variableColors.varSamp.class}">s²</span>) = 
+                    √(<span class="variable-color ${variableColors.varSamp.class}">${sampleVariance.toFixed(4)}</span>) = 
+                    <span class="variable-color ${variableColors.stdSamp.class}">${sampleStdDev.toFixed(4)}</span>
+                </div>
+            `;
+            processDetails.appendChild(step10);
+        }
+        
+        // Función para actualizar la leyenda de colores
+        function updateColorLegend() {
+            colorLegend.innerHTML = '';
+            
+            Object.entries(variableColors).forEach(([key, info]) => {
+                const legendItem = document.createElement('div');
+                legendItem.className = 'legend-item';
+                
+                const colorBox = document.createElement('div');
+                colorBox.className = `legend-color ${info.class}`;
+                
+                const label = document.createElement('span');
+                label.textContent = info.description;
+                
+                legendItem.appendChild(colorBox);
+                legendItem.appendChild(label);
+                colorLegend.appendChild(legendItem);
+            });
+        }
+        
+        // Función para actualizar el gráfico con datos ordenados
         function updateChart() {
             if (data.length === 0) return;
             
+            // Ordenar los datos de menor a mayor
+            const sortedData = [...data].sort((a, b) => a - b);
             const mean = calculateMean(data);
             const stdDev = Math.sqrt(calculateVariance(data, true));
             
             // Preparar datos para el gráfico
-            const labels = data.map((_, i) => `Dato ${i+1}`);
-            const values = data;
+            const labels = sortedData.map((_, i) => `Valor ${i+1}`);
+            const values = sortedData;
             
             // Obtener colores para cada valor
-            const backgroundColors = data.map(val => getColorForValue(val, mean, stdDev));
+            const backgroundColors = sortedData.map(val => getColorForValue(val, mean, stdDev));
             
             // Preparar líneas de referencia
             const referenceLines = [
@@ -735,7 +1026,7 @@
                         // Líneas de referencia
                         ...referenceLines.map(line => ({
                             label: line.label,
-                            data: data.map(() => line.value),
+                            data: sortedData.map(() => line.value),
                             type: 'line',
                             borderColor: line.color,
                             borderWidth: 1,
@@ -745,9 +1036,9 @@
                             pointHoverRadius: 0,
                             tension: 0
                         })),
-                        // Datos principales
+                        // Datos principales (ordenados)
                         {
-                            label: 'Valores',
+                            label: 'Valores ordenados',
                             data: values.map((value, index) => ({x: index, y: value})),
                             backgroundColor: backgroundColors,
                             borderColor: '#1d1d1f',
@@ -783,7 +1074,7 @@
                                     
                                     return [
                                         `Valor: ${value}`,
-                                        `Posición: ${index + 1}`,
+                                        `Posición ordenada: ${index + 1}`,
                                         `Distancia a media: ${distance.toFixed(2)}`,
                                         `Desviaciones estándar: ${stdDevs}σ`,
                                         `Zona: ${zone}`
@@ -796,7 +1087,7 @@
                         x: {
                             title: {
                                 display: true,
-                                text: 'Posición del dato',
+                                text: 'Posición ordenada (de menor a mayor)',
                                 color: '#636366',
                                 font: {
                                     size: 14
@@ -830,12 +1121,12 @@
                 }
             });
             
-            // Actualizar leyenda
-            updateLegend(mean, stdDev);
+            // Actualizar leyenda del gráfico
+            updateGraphLegend(mean, stdDev);
         }
         
         // Función para actualizar la leyenda del gráfico
-        function updateLegend(mean, stdDev) {
+        function updateGraphLegend(mean, stdDev) {
             const legendItems = [
                 { color: '#34C759', label: 'Dentro de 1σ (cerca de la media)' },
                 { color: '#FF9500', label: 'Entre 1σ y 2σ (moderadamente alejado)' },
@@ -872,7 +1163,11 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Mostrar la sección de resultados como oculta inicialmente
             resultsSection.classList.add('hidden');
+            processSection.classList.add('hidden');
             graphSection.classList.add('hidden');
+            
+            // Actualizar leyenda de colores
+            updateColorLegend();
             
             // Enfocar el área de texto al cargar
             dataInput.focus();
